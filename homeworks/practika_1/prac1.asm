@@ -46,40 +46,48 @@ data segment para public
     crc_val     dw ?
     temp_val    dw ?
     byte_cnt    db ?
-	
+    
 data ends
 
 code segment para public
-assume cs:code, ds:data, ss:stack
+    assume cs:code, ds:data, ss:stack
 
-start:
-    mov ax, data
-    mov ds, ax
-    mov ax, stack
-    mov ss, ax
 
+read_string:
     mov ah, 0Ah
     mov dx, offset str_max
     int 21h
+    ret
 
+
+print_newline:
     mov ah, 02h
     mov dl, 13
     int 21h
     mov dl, 10
     int 21h
+    ret
+
+
+calc_crc16:
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
 
     mov cx, 0FFFFh
-    mov bl, byte ptr str_len
-    mov byte ptr byte_cnt, bl
-    cmp bl, 0
-    je vivod_rezultata
+    mov al, byte ptr [str_len]
+    mov byte ptr [byte_cnt], al
+
+    cmp byte ptr [byte_cnt], 0
+    je crc_end
 
     mov si, offset str_data
 
-cikl_crc:
-    mov bl, byte ptr byte_cnt
-    cmp bl, 0
-    je konec_crc
+crc_loop:
+    cmp byte ptr [byte_cnt], 0
+    je crc_end
 
     mov al, byte ptr [si]
     inc si
@@ -89,29 +97,38 @@ cikl_crc:
     mov bx, ax
     shl bx, 1
 
-    mov ax, word ptr crc_table[bx]
+    mov ax, word ptr [crc_table + bx]
     mov dl, ch
     mov dh, 0
     xor ax, dx
 
     mov cx, ax
 
-    dec byte ptr byte_cnt
-    jmp cikl_crc
+    dec byte ptr [byte_cnt]
+    jmp crc_loop
 
-konec_crc:
-    mov word ptr crc_val, cx
+crc_end:
+    mov word ptr [crc_val], cx
 
-vivod_rezultata:
-    mov ax, word ptr crc_val
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
+
+convert_to_hex:
+    push ax
+    mov ax, word ptr [crc_val]
     call word_to_hex
+    pop ax
+    ret
 
+print_hex:
     mov ah, 09h
     mov dx, offset hex_out
     int 21h
-
-    mov ax, 4C00h
-    int 21h
+    ret
 
 word_to_hex:
     push ax
@@ -121,29 +138,30 @@ word_to_hex:
     push si
     push di
 
-    mov word ptr temp_val, ax
+    mov word ptr [temp_val], ax
     mov di, 3
 
-cikl_hex:
-    mov ax, word ptr temp_val
+hex_loop:
+    mov ax, word ptr [temp_val]
     and ax, 0Fh
+
     cmp al, 9
-    jbe cifra
+    jbe convert_digit
     add al, 7
 
-cifra:
+convert_digit:
     add al, '0'
     mov si, di
-    mov byte ptr hex_out[si], al
+    mov byte ptr [hex_out + si], al
 
-    mov ax, word ptr temp_val
+    mov ax, word ptr [temp_val]
     mov cl, 4
     shr ax, cl
-    mov word ptr temp_val, ax
+    mov word ptr [temp_val], ax
 
     dec di
     cmp di, 0
-    jge cikl_hex
+    jge hex_loop
 
     pop di
     pop si
@@ -152,6 +170,21 @@ cifra:
     pop bx
     pop ax
     ret
-	code ends
+
+start:
+    mov ax, data
+    mov ds, ax
+    mov ax, stack
+    mov ss, ax
+
+    call read_string
+    call print_newline
+    call calc_crc16
+    call convert_to_hex
+    call print_hex
+
+    mov ax, 4c00h
+    int 21h
+    code ends
 
 end start
