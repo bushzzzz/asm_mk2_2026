@@ -14,7 +14,7 @@ input db 255, 0, 256 dup(0)
 base_input db 3, 0, 4 dup(0)
 
 msg_base db "base (d/h): $"
-msg_expr db "expression: $"
+msg_expr db "expression (num1 op num2): $"
 msg_ok_dec db "dec: $"
 msg_ok_hex db "hex: $"
 msg_errfmt db "invalid format$"
@@ -46,7 +46,6 @@ data ends
 code segment para public use16
 assume cs:code, ds:data, ss:stack
 
-; функция для вывода строки с '$'-терминатором на экран
 _putstr:
     push bp
     mov bp, sp
@@ -56,7 +55,6 @@ _putstr:
     pop bp
     ret
 
-; функция для вывода перевода строки CR+LF
 _newline:
     push bp
     mov bp, sp
@@ -68,7 +66,6 @@ _newline:
     pop bp
     ret
 
-; функция для чтения строки через DOS, добавляет нуль-терминатор
 _getstr:
     push bp
     mov bp, sp
@@ -84,7 +81,6 @@ _getstr:
     pop bp
     ret
 
-; функция для запроса системы счисления (d/h), сохраняет в [base]
 _read_base:
     push bp
     mov bp, sp
@@ -121,7 +117,6 @@ read_base_exit:
     pop bp
     ret
 
-; функция для преобразования десятичной строки в знаковое 16-битное число
 _atoi:
     push bp
     mov bp, sp
@@ -209,7 +204,6 @@ atoi_exit:
     pop bp
     ret
 
-; функция для преобразования hex-строки в знаковое 16-битное число
 _atoi_hex:
     push bp
     mov bp, sp
@@ -321,7 +315,6 @@ atoi_hex_exit:
     pop bp
     ret
 
-; функция для проверки формата и парсинга выражения в десятичной системе
 _check:
     push bp
     mov bp, sp
@@ -333,7 +326,7 @@ _check:
 
     push si
     call _atoi
-    pop dx
+    add sp, 2
     jc check_exit_err
     mov word ptr [num1], ax
 
@@ -367,7 +360,7 @@ check_op_ok:
 
     push si
     call _atoi
-    pop dx
+    add sp, 2
     jc check_exit_err
     mov word ptr [num2], ax
 
@@ -389,7 +382,6 @@ check_exit:
     pop bp
     ret
 
-; функция для проверки формата и парсинга выражения в hex системе
 _check_hex:
     push bp
     mov bp, sp
@@ -401,7 +393,7 @@ _check_hex:
 
     push si
     call _atoi_hex
-    pop dx
+    add sp, 2
     jc check_hex_exit_err
     mov word ptr [num1], ax
 
@@ -435,7 +427,7 @@ check_hex_op_ok:
 
     push si
     call _atoi_hex
-    pop dx
+    add sp, 2
     jc check_hex_exit_err
     mov word ptr [num2], ax
 
@@ -457,7 +449,6 @@ check_hex_exit:
     pop bp
     ret
 
-; функция для преобразования знакового 16-битного числа в десятичную строку
 _itoa:
     push bp
     mov bp, sp
@@ -527,7 +518,6 @@ itoa_end:
     pop bp
     ret
 
-; функция для преобразования знакового 16-битного числа в hex строку
 _itoa_hex16:
     push bp
     mov bp, sp
@@ -592,7 +582,6 @@ itoa_h16_done:
     pop bp
     ret
 
-; функция для преобразования знакового 32-битного числа в десятичную строку
 _itoa32:
     push bp
     mov bp, sp
@@ -698,7 +687,6 @@ itoa32_end:
     pop bp
     ret
 
-; функция для преобразования знакового 32-битного числа в hex строку
 _itoa_hex32:
     push bp
     mov bp, sp
@@ -834,7 +822,6 @@ itoa_h32_finish:
     pop bp
     ret
 
-; функция для выполнения арифметической операции над двумя числами
 _operation:
     push bp
     mov bp, sp
@@ -943,7 +930,6 @@ op_exit:
     pop bp
     ret
 
-; функция для вывода результата вычисления в десятичной и hex системах
 _print_result:
     push bp
     mov bp, sp
