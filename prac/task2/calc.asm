@@ -326,7 +326,7 @@ _check:
 
     push si
     call _atoi
-    add sp, 2
+    pop dx              ; ИСПРАВЛЕНО: pop не меняет флаги, add sp — меняет!
     jc check_exit_err
     mov word ptr [num1], ax
 
@@ -360,7 +360,7 @@ check_op_ok:
 
     push si
     call _atoi
-    add sp, 2
+    pop dx              ; ИСПРАВЛЕНО
     jc check_exit_err
     mov word ptr [num2], ax
 
@@ -393,7 +393,7 @@ _check_hex:
 
     push si
     call _atoi_hex
-    add sp, 2
+    pop dx              ; ИСПРАВЛЕНО
     jc check_hex_exit_err
     mov word ptr [num1], ax
 
@@ -427,7 +427,7 @@ check_hex_op_ok:
 
     push si
     call _atoi_hex
-    add sp, 2
+    pop dx              ; ИСПРАВЛЕНО
     jc check_hex_exit_err
     mov word ptr [num2], ax
 
@@ -989,7 +989,6 @@ pr_hex_out:
     pop bp
     ret
 
-
 _print_error:
     push bp
     mov bp, sp
@@ -1035,7 +1034,6 @@ pe_print:
     pop bp
     ret
 
-
 _calc:
     push bp
     mov bp, sp
@@ -1045,11 +1043,11 @@ _calc:
 
     push offset msg_expr
     call _putstr
-    pop dx
+    add sp, 2
 
     push offset input
     call _getstr
-    pop dx
+    add sp, 2
 
     call _newline
 
@@ -1060,14 +1058,14 @@ _calc:
 
     push ax
     call _check
-    pop dx
+    pop dx              ; ИСПРАВЛЕНО: pop dx вместо add sp, 2
     jc calc_error
     jmp calc_compute
 
 calc_use_hex:
     push ax
     call _check_hex
-    pop dx
+    pop dx              ; ИСПРАВЛЕНО
     jc calc_error
 
 calc_compute:
@@ -1077,9 +1075,9 @@ calc_compute:
     push word ptr [num2]
     push word ptr [num1]
     call _operation
-    pop dx
-    pop dx
-    pop dx
+    pop dx              ; ИСПРАВЛЕНО: pop dx вместо add sp, 2
+    pop dx              ; ИСПРАВЛЕНО
+    pop dx              ; ИСПРАВЛЕНО
     jc calc_error
 
     call _print_result
@@ -1088,18 +1086,16 @@ calc_compute:
 calc_error:
     push ax
     call _print_error
-    pop dx
+    add sp, 2
 
 calc_done:
     call _newline
     pop bp
     ret
 
-
 _exit0:
     mov ax, 4C00h
     int 21h
-
 
 start:
     mov ax, data
@@ -1109,6 +1105,6 @@ start:
 
     call _calc
     call _exit0
-	
 	code ends
+
 end start
