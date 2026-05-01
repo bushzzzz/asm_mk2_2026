@@ -326,7 +326,7 @@ _check:
 
     push si
     call _atoi
-    pop dx              ; ИСПРАВЛЕНО: pop не меняет флаги, add sp — меняет!
+    pop dx              
     jc check_exit_err
     mov word ptr [num1], ax
 
@@ -360,7 +360,7 @@ check_op_ok:
 
     push si
     call _atoi
-    pop dx              ; ИСПРАВЛЕНО
+    pop dx              
     jc check_exit_err
     mov word ptr [num2], ax
 
@@ -393,7 +393,7 @@ _check_hex:
 
     push si
     call _atoi_hex
-    pop dx              ; ИСПРАВЛЕНО
+    pop dx              
     jc check_hex_exit_err
     mov word ptr [num1], ax
 
@@ -427,7 +427,7 @@ check_hex_op_ok:
 
     push si
     call _atoi_hex
-    pop dx              ; ИСПРАВЛЕНО
+    pop dx             
     jc check_hex_exit_err
     mov word ptr [num2], ax
 
@@ -1058,14 +1058,14 @@ _calc:
 
     push ax
     call _check
-    pop dx              ; ИСПРАВЛЕНО: pop dx вместо add sp, 2
+    pop dx             
     jc calc_error
     jmp calc_compute
 
 calc_use_hex:
     push ax
     call _check_hex
-    pop dx              ; ИСПРАВЛЕНО
+    pop dx             
     jc calc_error
 
 calc_compute:
@@ -1075,9 +1075,9 @@ calc_compute:
     push word ptr [num2]
     push word ptr [num1]
     call _operation
-    pop dx              ; ИСПРАВЛЕНО: pop dx вместо add sp, 2
-    pop dx              ; ИСПРАВЛЕНО
-    pop dx              ; ИСПРАВЛЕНО
+    pop dx              
+    pop dx              
+    pop dx              
     jc calc_error
 
     call _print_result
